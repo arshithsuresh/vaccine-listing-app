@@ -5,11 +5,23 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:http/http.dart' as http;
 
+
+enum AgeList{
+  Above18,
+  Above45,
+  AllAges
+}
+
+enum Doses{
+  Dose1,
+  Dose2,
+  Any
+}
+
 class LocationSelectorProvider extends ChangeNotifier {
   int _selectedState = -1;
   int _selectedDistrict = -1;
-  DateTime _date;
-
+  DateTime _date;  
   int get state => _selectedState;
   int get district => _selectedDistrict;
 
@@ -18,6 +30,10 @@ class LocationSelectorProvider extends ChangeNotifier {
   List<VaccineSlot> vaccineSlots =[];
 
   VaccineSlot selectedVaccine;
+
+  AgeList ageList = AgeList.Above18;
+  Doses doseSort = Doses.Any;
+
 
   LocationSelectorProvider() {
     _date = DateTime.now();
@@ -30,17 +46,33 @@ class LocationSelectorProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectDose(Doses dose)
+  {
+    doseSort = dose;
+    notifyListeners();
+  }
+
   void selectVaccine(VaccineSlot vaccine){
 
       selectedVaccine = vaccine;
       notifyListeners();
   }
 
-  Future<List<VaccineSlot>> getVaccineSlotAPI() async
+  void clearVaccineSlot()
+  {
+      vaccineSlots = [];
+      notifyListeners();
+  }
+
+  void setAgeSorting(AgeList value)
+  {
+     ageList = value;
+     notifyListeners();
+  }
+  void getVaccineSlotAPI() async
   {
     
-    String APIURL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?";
-    
+    String APIURL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?";    
 
     var url = Uri.parse(APIURL+"district_id="+district.toString()+"&"+"date="+date);
     print(url);
@@ -53,11 +85,10 @@ class LocationSelectorProvider extends ChangeNotifier {
       
       slots.sort((a,b)=>b.totalVaccines.compareTo(a.totalVaccines));
 
-      vaccineSlots = slots;
-      return slots;
-    }      
+      vaccineSlots = slots;     
+    }   
 
-    return null;
+    notifyListeners();    
   }
 
   void selectDistrict(int districtId) {
